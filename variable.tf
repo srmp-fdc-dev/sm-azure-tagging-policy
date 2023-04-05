@@ -1,5 +1,5 @@
 variable "tag_list"{
-type   = list
+type   = list(string)
 description = "List of Mandatory tags"
 }
 variable "subscription"{
