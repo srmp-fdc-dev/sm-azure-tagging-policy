@@ -16,9 +16,9 @@ provider "azurerm" {
   subscription_id = var.subscription_id
 }
 
-resource "azurerm_policy_definition" "addTagToRG" {
+resource "azurerm_policy_definition" "add_tag_to_rg" {
   count        = "${length(var.tag_list)}"
-  name         = "addTagToRG-${var.tag_list[count.index]}"
+  name         = "add_tag_to_rg-${var.tag_list[count.index]}"
   policy_type  = "Custom"
   mode         = "All"
   display_name = "${var.tag_list[count.index]} Tag to resource group"
@@ -62,5 +62,22 @@ parameters = <<PARAMETERS
 PARAMETERS
 }
 
-data "azurerm_subscription" "current" {}
-
+resource "azurerm_policy_assignment" "add_tag_to_rg_assignment" {
+  count                = "${length(var.tag_list)}"
+  name                 = "mandatory-tags-forRG-${var.tag_list[count.index]}"
+  scope                = "/subscriptions/${var.subscription}"
+  policy_definition_id = element(azurerm_policy_definition.add_tag_to_rg.*.id,count.index)
+  description          = "Policy Assignment created for Mandatory Tags"
+  display_name         = "Mandatory Tags Assignment-${var.tag_list[count.index]}"
+metadata = <<METADATA
+    {
+    "category": "General"
+    }
+METADATA
+parameters = jsonencode({
+  "tagName": {
+    "value":  var.tag_list[count.index],
+  }
+}
+  )
+}
